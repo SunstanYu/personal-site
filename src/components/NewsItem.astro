@@ -1,0 +1,54 @@
+---
+interface Item {
+  title: string;
+  url: string;
+  source: 'x' | 'hn' | 'rss';
+  author?: string;
+  handle?: string;
+  points?: number;
+  site?: string;
+  category?: string;
+  note?: string;
+}
+interface Props {
+  item: Item;
+  index: number;
+}
+const { item, index } = Astro.props;
+const num = String(index + 1).padStart(2, '0');
+---
+
+<section class="news-item">
+  <div class="news-item-head">
+    <span class="news-num">{num}</span>
+    <a href={item.url} target="_blank" rel="noopener">
+      {item.title}
+      <i class="ti ti-external-link" aria-hidden="true"></i>
+    </a>
+  </div>
+  <div class="news-item-body">
+    <div class="source-row">
+      {item.source === 'x' && (
+        <>
+          <span class="source-pill"><i class="ti ti-brand-x" aria-hidden="true"></i> X</span>
+          {item.author && <span class="source-author">{item.author}</span>}
+          {item.handle && <span class="source-handle">@{item.handle}</span>}
+        </>
+      )}
+      {item.source === 'hn' && (
+        <>
+          <span class="source-pill"><i class="ti ti-brand-ycombinator" aria-hidden="true"></i> Hacker News</span>
+          {item.points != null && <span class="source-points">{item.points} points</span>}
+        </>
+      )}
+      {item.source === 'rss' && (
+        <>
+          <span class="source-pill"><i class="ti ti-rss" aria-hidden="true"></i> RSS</span>
+          {item.site && <span class="source-site">{item.site}</span>}
+        </>
+      )}
+      {item.category && <span class="source-site">· {item.category}</span>}
+    </div>
+    {item.note && <p class="note">{item.note}</p>}
+  </div>
+</section>

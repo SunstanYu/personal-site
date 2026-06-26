@@ -1,0 +1,50 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((p) => ({ params: { slug: p.slug }, props: { project: p } }));
+}
+
+interface Props { project: CollectionEntry<'projects'>; }
+const { project } = Astro.props;
+const { Content, headings } = await project.render();
+
+const statusLabel = project.data.status === 'in-progress' ? '进行中' : '已完成';
+---
+
+<ArticleLayout
+  title={`${project.data.title} — Projects`}
+  description={project.data.description}
+  current="projects"
+  headings={headings}
+  showProgress={false}
+>
+  <nav class="breadcrumbs">
+    <a href="/projects">Projects</a> / {project.data.title}
+  </nav>
+  <article class="article">
+    <h1>{project.data.title}</h1>
+    <div class="meta-row" style="gap:8px;">
+      <span class={`status-pill status-${project.data.status}`}>{statusLabel}</span>
+      {project.data.stack.map((s) => <span class="stack-pill">{s}</span>)}
+    </div>
+    {(project.data.repo || project.data.writeup) && (
+      <div class="link-row" style="margin-bottom: 24px;">
+        {project.data.repo && (
+          <a href={project.data.repo} target="_blank" rel="noopener">
+            <i class="ti ti-brand-github" aria-hidden="true"></i> Code
+          </a>
+        )}
+        {project.data.writeup && (
+          <a href={project.data.writeup}>
+            <i class="ti ti-file-text" aria-hidden="true"></i> Writeup
+          </a>
+        )}
+      </div>
+    )}
+    <p style="color: var(--color-text-secondary); font-size: 15px;">{project.data.description}</p>
+    <Content />
+  </article>
+</ArticleLayout>

@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NewsListItem from '../../components/NewsListItem.astro';
+
+const items = (await getCollection('news')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<BaseLayout title="News — Charles" current="news">
+  <header class="page-head">
+    <h1>News</h1>
+    <p class="sub">每日科技精选 · Daily tech digest</p>
+  </header>
+
+  <div class="news-list">
+    {items.map((entry) => (
+      <NewsListItem
+        href={`/news/${entry.slug}`}
+        date={entry.data.date}
+        title={entry.data.title}
+        summary={entry.data.summary}
+        count={entry.data.count ?? entry.data.items.length}
+      />
+    ))}
+    {items.length === 0 && (
+      <p style="color: var(--color-text-tertiary); padding: 24px 0;">No digests yet.</p>
+    )}
+  </div>
+</BaseLayout>

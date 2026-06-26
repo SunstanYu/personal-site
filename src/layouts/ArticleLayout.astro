@@ -1,0 +1,58 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: 'writing' | 'projects' | 'news' | 'about';
+  headings?: { depth: number; slug: string; text: string }[];
+  showProgress?: boolean;
+}
+const {
+  title,
+  description,
+  current,
+  headings = [],
+  showProgress = true,
+} = Astro.props;
+
+const tocItems = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+<BaseLayout title={title} description={description} current={current}>
+  {showProgress && <div class="progress-bar" id="reading-progress"></div>}
+  <div class="content-inner article">
+    <slot />
+  </div>
+
+  {tocItems.length > 2 && (
+    <aside class="toc" aria-label="Table of contents">
+      <h4>On this page</h4>
+      <ol>
+        {tocItems.map((h) => (
+          <li style={`padding-left:${(h.depth - 2) * 12}px`}>
+            <a href={`#${h.slug}`}>{h.text}</a>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  )}
+
+  {showProgress && (
+    <script is:inline>
+      (() => {
+        const bar = document.getElementById('reading-progress');
+        if (!bar) return;
+        const onScroll = () => {
+          const h = document.documentElement;
+          const scrolled = h.scrollTop || document.body.scrollTop;
+          const max = h.scrollHeight - h.clientHeight;
+          const pct = max > 0 ? (scrolled / max) * 100 : 0;
+          bar.style.width = pct + '%';
+        };
+        document.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
+    </script>
+  )}
+</BaseLayout>

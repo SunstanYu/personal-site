@@ -1,0 +1,38 @@
+---
+// Theme toggle button. The actual theme decision happens in BaseLayout's
+// inline head script (to avoid FOUC); this only swaps it on click.
+---
+
+<button
+  class="icon-btn theme-toggle"
+  type="button"
+  aria-label="Toggle dark mode"
+  data-theme-toggle
+>
+  <i class="ti ti-moon" data-theme-icon-light aria-hidden="true"></i>
+  <i class="ti ti-sun" data-theme-icon-dark aria-hidden="true" style="display:none"></i>
+</button>
+
+<script is:inline>
+  (() => {
+    const sync = () => {
+      const isDark = document.documentElement.dataset.theme === 'dark';
+      document.querySelectorAll('[data-theme-icon-light]').forEach((el) => {
+        el.style.display = isDark ? 'none' : '';
+      });
+      document.querySelectorAll('[data-theme-icon-dark]').forEach((el) => {
+        el.style.display = isDark ? '' : 'none';
+      });
+    };
+    document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const next =
+          document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch {}
+        sync();
+      });
+    });
+    sync();
+  })();
+</script>

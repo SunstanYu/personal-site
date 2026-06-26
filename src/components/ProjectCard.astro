@@ -1,0 +1,43 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  status: 'in-progress' | 'done';
+  stack: string[];
+  icon?: string;
+  repo?: string;
+  writeup?: string;
+}
+const { href, title, description, status, stack, icon, repo, writeup } = Astro.props;
+
+const statusLabel = status === 'in-progress' ? '进行中' : '已完成';
+---
+
+<a href={href} class="project-card">
+  <div class="top-row">
+    {icon ? <i class={`ti ti-${icon} icon`} aria-hidden="true"></i> : <span class="icon"></span>}
+    <span class={`status-pill status-${status}`}>{statusLabel}</span>
+  </div>
+  <h2>{title}</h2>
+  <p class="desc">{description}</p>
+  {stack.length > 0 && (
+    <div class="stack-row">
+      {stack.map((s) => <span class="stack-pill">{s}</span>)}
+    </div>
+  )}
+  {(repo || writeup) && (
+    <div class="link-row">
+      {repo && (
+        <a href={repo} target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          <i class="ti ti-brand-github" aria-hidden="true"></i> Code
+        </a>
+      )}
+      {writeup && (
+        <a href={writeup} onclick="event.stopPropagation()">
+          <i class="ti ti-file-text" aria-hidden="true"></i> Writeup
+        </a>
+      )}
+    </div>
+  )}
+</a>

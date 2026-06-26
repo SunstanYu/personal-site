@@ -1,0 +1,37 @@
+---
+import readingTime from 'reading-time';
+
+interface Props {
+  href: string;
+  title: string;
+  date: Date;
+  lang: 'zh' | 'en';
+  description: string;
+  tags: string[];
+  body?: string;
+  readingMinutes?: number;
+}
+const { href, title, date, lang, description, tags, body = '', readingMinutes } = Astro.props;
+
+const minutes = readingMinutes ?? Math.max(1, Math.round(readingTime(body).minutes));
+const fmtDate = date.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<a href={href} class="article-row">
+  <div class="meta-row">
+    <span class="lang-pill">{lang === 'zh' ? 'CN' : 'EN'}</span>
+    <span>{fmtDate}</span>
+    <span>· {minutes} min read</span>
+  </div>
+  <h2>{title}</h2>
+  <p class="desc">{description}</p>
+  {tags.length > 0 && (
+    <div class="tag-row">
+      {tags.map((t) => <span>#{t}</span>)}
+    </div>
+  )}
+</a>

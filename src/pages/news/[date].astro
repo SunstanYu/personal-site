@@ -1,0 +1,39 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NewsItem from '../../components/NewsItem.astro';
+
+export async function getStaticPaths() {
+  const items = await getCollection('news');
+  return items.map((entry) => ({ params: { date: entry.slug }, props: { entry } }));
+}
+
+interface Props { entry: CollectionEntry<'news'>; }
+const { entry } = Astro.props;
+const items = entry.data.items;
+const count = entry.data.count ?? items.length;
+
+const sources = Array.from(new Set(items.map((i) => i.source)));
+const sourceLabel = sources
+  .map((s) => (s === 'x' ? 'X' : s === 'hn' ? 'Hacker News' : 'RSS'))
+  .join(' / ');
+---
+
+<BaseLayout title={`${entry.data.title} — News`} current="news">
+  <nav class="breadcrumbs">
+    <a href="/news">News</a> / {entry.slug}
+  </nav>
+  <header class="page-head">
+    <h1>{entry.data.title}</h1>
+    <p class="sub">{count} 条 · 来源 {sourceLabel || '—'}</p>
+  </header>
+
+  <div class="news-intro">{entry.data.summary}</div>
+
+  <div class="news-detail">
+    {items.map((item, i) => <NewsItem item={item} index={i} />)}
+    {items.length === 0 && (
+      <p style="color: var(--color-text-tertiary);">No items.</p>
+    )}
+  </div>
+</BaseLayout>

@@ -1,0 +1,20 @@
+---
+interface Props {
+  href: string;
+  date: Date;
+  title: string;
+  summary: string;
+  count: number;
+}
+const { href, date, title, summary, count } = Astro.props;
+
+const fmt = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+---
+
+<a href={href} class="news-row">
+  <div class="news-date">{fmt}</div>
+  <div class="news-body">
+    <h2>{title}</h2>
+    <p class="sum">{summary} <span class="count">· {count} 条</span></p>
+  </div>
+</a>

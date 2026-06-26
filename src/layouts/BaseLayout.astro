@@ -1,0 +1,63 @@
+---
+import Sidebar from '../components/Sidebar.astro';
+import TopNav from '../components/TopNav.astro';
+import '../styles/theme.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: 'writing' | 'projects' | 'news' | 'about';
+  tags?: string[];
+  activeTag?: string;
+  wide?: boolean;
+}
+const {
+  title,
+  description = '技术笔记、项目记录与每日科技精选。',
+  current,
+  tags,
+  activeTag,
+  wide,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="alternate" type="application/rss+xml" title="Writing" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="News" href="/news/rss.xml" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css"
+    />
+
+    {/* Theme bootstrap — runs BEFORE paint to avoid FOUC. */}
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem('theme');
+          const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = stored || (sysDark ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="shell">
+      <Sidebar current={current} tags={tags} activeTag={activeTag} />
+      <TopNav current={current} />
+      <main class="content">
+        <div class={`content-inner${wide ? ' wide' : ''}`}>
+          <slot />
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

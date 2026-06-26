@@ -1,0 +1,78 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import readingTime from 'reading-time';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('writing', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props { post: CollectionEntry<'writing'>; }
+const { post } = Astro.props;
+const { Content, headings } = await post.render();
+
+const all = (await getCollection('writing', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const idx = all.findIndex((p) => p.slug === post.slug);
+const newer = idx > 0 ? all[idx - 1] : null;
+const older = idx < all.length - 1 ? all[idx + 1] : null;
+
+const related = all
+  .filter((p) => p.slug !== post.slug && p.data.tags.some((t) => post.data.tags.includes(t)))
+  .slice(0, 4);
+
+const minutes = post.data.readingTime ?? Math.max(1, Math.round(readingTime(post.body).minutes));
+const fmtDate = post.data.date.toLocaleDateString('zh-CN', {
+  year: 'numeric', month: 'short', day: 'numeric',
+});
+---
+
+<ArticleLayout
+  title={`${post.data.title} — Charles`}
+  description={post.data.description}
+  current="writing"
+  headings={headings}
+>
+  <nav class="breadcrumbs">
+    <a href="/">Writing</a> / {post.data.title}
+  </nav>
+  <article class="article">
+    <h1>{post.data.title}</h1>
+    <div class="meta-row">
+      <span class="lang-pill">{post.data.lang === 'zh' ? 'CN' : 'EN'}</span>
+      <span>{fmtDate}</span>
+      <span>· {minutes} min read</span>
+    </div>
+    <Content />
+
+    {post.data.tags.length > 0 && (
+      <div class="tag-row" style="margin-top: 32px;">
+        {post.data.tags.map((t) => (
+          <a href={`/?tag=${encodeURIComponent(t)}`}>#{t}</a>
+        ))}
+      </div>
+    )}
+
+    <nav class="prev-next" aria-label="Pagination">
+      {newer ? (
+        <a href={`/writing/${newer.slug}`}>← {newer.data.title}</a>
+      ) : <span></span>}
+      {older ? (
+        <a href={`/writing/${older.slug}`}>{older.data.title} →</a>
+      ) : <span></span>}
+    </nav>
+
+    {related.length > 0 && (
+      <section class="related">
+        <h4>Related</h4>
+        <ul>
+          {related.map((r) => (
+            <li><a href={`/writing/${r.slug}`}>{r.data.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </article>
+</ArticleLayout>

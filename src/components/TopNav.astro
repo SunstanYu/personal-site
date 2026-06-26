@@ -1,0 +1,40 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  current?: 'writing' | 'projects' | 'news' | 'about';
+}
+const { current } = Astro.props;
+
+const navItems = [
+  { href: '/', label: 'Writing', key: 'writing' },
+  { href: '/projects', label: 'Projects', key: 'projects' },
+  { href: '/news', label: 'News', key: 'news' },
+  { href: '/about', label: 'About', key: 'about' },
+];
+---
+
+<nav class="topnav" aria-label="Mobile primary">
+  <a href="/" class="brand">
+    <span class="brand-mark">C</span>
+    <span class="brand-name">Charles</span>
+  </a>
+  <div class="topnav-links">
+    {navItems.map((item) => (
+      <a
+        href={item.href}
+        class={current === item.key ? 'active' : ''}
+        aria-current={current === item.key ? 'page' : undefined}
+      >{item.label}</a>
+    ))}
+  </div>
+  <div class="topnav-foot">
+    <button class="icon-btn" type="button" aria-label="Toggle language filter" data-lang-toggle>
+      <i class="ti ti-language" aria-hidden="true"></i>
+    </button>
+    <ThemeToggle />
+    <a class="icon-btn" href="/rss.xml" aria-label="Writing RSS feed">
+      <i class="ti ti-rss" aria-hidden="true"></i>
+    </a>
+  </div>
+</nav>

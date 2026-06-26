@@ -1,0 +1,87 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  current?: 'writing' | 'projects' | 'news' | 'about';
+  tags?: string[];
+  activeTag?: string;
+}
+const { current, tags = [], activeTag } = Astro.props;
+
+const navItems = [
+  { href: '/', label: 'Writing', icon: 'ti-pencil', key: 'writing' },
+  { href: '/projects', label: 'Projects', icon: 'ti-folder', key: 'projects' },
+  { href: '/news', label: 'News', icon: 'ti-news', key: 'news' },
+  { href: '/about', label: 'About', icon: 'ti-user', key: 'about' },
+];
+---
+
+<aside class="sidebar">
+  <a href="/" class="brand">
+    <span class="brand-mark">C</span>
+    <span class="brand-name">Charles</span>
+  </a>
+
+  <nav class="nav" aria-label="Primary">
+    {navItems.map((item) => (
+      <a
+        href={item.href}
+        class={current === item.key ? 'active' : ''}
+        aria-current={current === item.key ? 'page' : undefined}
+      >
+        <i class={`ti ${item.icon}`} aria-hidden="true"></i>
+        <span>{item.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  {tags.length > 0 && (
+    <div class="sidebar-tags">
+      <h4>TAGS</h4>
+      <a href="/" class={!activeTag ? 'active' : ''}>All</a>
+      {tags.map((t) => (
+        <a
+          href={`/?tag=${encodeURIComponent(t)}`}
+          class={activeTag === t ? 'active' : ''}
+        >#{t}</a>
+      ))}
+    </div>
+  )}
+
+  <div class="sidebar-foot">
+    <button
+      class="icon-btn"
+      type="button"
+      aria-label="Toggle language filter"
+      data-lang-toggle
+    >
+      <i class="ti ti-language" aria-hidden="true"></i>
+    </button>
+    <ThemeToggle />
+    <a class="icon-btn" href="/rss.xml" aria-label="Writing RSS feed">
+      <i class="ti ti-rss" aria-hidden="true"></i>
+    </a>
+    <a class="icon-btn" href="https://github.com/SunstanYu" aria-label="GitHub" target="_blank" rel="noopener">
+      <i class="ti ti-brand-github" aria-hidden="true"></i>
+    </a>
+  </div>
+</aside>
+
+<script is:inline>
+  // Cycle CN -> EN -> ALL filter on the Writing list page only.
+  (() => {
+    const btns = document.querySelectorAll('[data-lang-toggle]');
+    if (!btns.length) return;
+    btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        const order = ['all', 'zh', 'en'];
+        const cur = url.searchParams.get('lang') || 'all';
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        if (next === 'all') url.searchParams.delete('lang');
+        else url.searchParams.set('lang', next);
+        window.location.href = url.pathname + url.search + url.hash;
+      })
+    );
+  })();
+</script>
