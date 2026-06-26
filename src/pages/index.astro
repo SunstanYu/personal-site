@@ -3,41 +3,31 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleListItem from '../components/ArticleListItem.astro';
 
+// Static build: render all posts. Filtering by ?tag and ?lang happens
+// client-side (see <script> at the bottom) so the static HTML works
+// for any query-string variant.
 const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
 
-const url = new URL(Astro.request.url);
-const activeTag = url.searchParams.get('tag') || undefined;
-const activeLang = url.searchParams.get('lang') || undefined;
-
-const filtered = posts.filter((p) => {
-  if (activeTag && !p.data.tags.includes(activeTag)) return false;
-  if (activeLang && p.data.lang !== activeLang) return false;
-  return true;
-});
-
 const tags = Array.from(new Set(posts.flatMap((p) => p.data.tags))).sort();
 ---
 
-<BaseLayout title="Writing — Charles" current="writing" tags={tags} activeTag={activeTag}>
+<BaseLayout title="Writing — Charles" current="writing" tags={tags}>
   <header class="page-head">
     <h1>Writing</h1>
     <p class="sub">技术笔记、项目记录与一些随想。</p>
   </header>
 
-  <div class="tag-filter">
-    <a href="/" class={!activeTag ? 'active' : ''}>All</a>
+  <div class="tag-filter" data-tag-filter>
+    <a href="/" data-tag="">All</a>
     {tags.map((t) => (
-      <a
-        href={`/?tag=${encodeURIComponent(t)}`}
-        class={activeTag === t ? 'active' : ''}
-      >#{t}</a>
+      <a href={`/?tag=${encodeURIComponent(t)}`} data-tag={t}>#{t}</a>
     ))}
   </div>
 
-  <div class="article-list">
-    {filtered.map((post) => (
+  <div class="article-list" data-article-list>
+    {posts.map((post) => (
       <ArticleListItem
         href={`/writing/${post.slug}`}
         title={post.data.title}
@@ -49,8 +39,45 @@ const tags = Array.from(new Set(posts.flatMap((p) => p.data.tags))).sort();
         readingMinutes={post.data.readingTime}
       />
     ))}
-    {filtered.length === 0 && (
-      <p style="color: var(--color-text-tertiary); padding: 24px 0;">No posts match the current filter.</p>
-    )}
   </div>
+
+  <p
+    data-empty-state
+    style="color: var(--color-text-tertiary); padding: 24px 0; display: none;"
+  >No posts match the current filter.</p>
 </BaseLayout>
+
+<script is:inline>
+  (() => {
+    const params = new URLSearchParams(location.search);
+    const activeTag = params.get('tag') || '';
+    const activeLang = params.get('lang') || '';
+
+    // Filter rows.
+    let visible = 0;
+    document.querySelectorAll('.article-row').forEach((row) => {
+      const tags = (row.dataset.tags || '').split('|').filter(Boolean);
+      const lang = row.dataset.lang || '';
+      let show = true;
+      if (activeTag && !tags.includes(activeTag)) show = false;
+      if (activeLang && lang !== activeLang) show = false;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    const empty = document.querySelector('[data-empty-state]');
+    if (empty) empty.style.display = visible === 0 ? '' : 'none';
+
+    // Sync "active" state on tag pills (sidebar + mobile).
+    const tagLinks = document.querySelectorAll('[data-tag]');
+    tagLinks.forEach((a) => {
+      const t = a.dataset.tag || '';
+      a.classList.toggle('active', t === activeTag);
+    });
+    document.querySelectorAll('.sidebar-tags a').forEach((a) => {
+      const u = new URL(a.href);
+      const t = u.searchParams.get('tag') || '';
+      a.classList.toggle('active', t === activeTag);
+    });
+  })();
+</script>

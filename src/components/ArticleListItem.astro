@@ -21,7 +21,7 @@ const fmtDate = date.toLocaleDateString('zh-CN', {
 });
 ---
 
-<a href={href} class="article-row">
+<a href={href} class="article-row" data-lang={lang} data-tags={tags.join('|')}>
   <div class="meta-row">
     <span class="lang-pill">{lang === 'zh' ? 'CN' : 'EN'}</span>
     <span>{fmtDate}</span>
